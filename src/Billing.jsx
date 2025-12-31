@@ -3,13 +3,13 @@ import "./Billing.css";
 import logo from "../src/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 
-
 const Billing = () => {
-    
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const [items, setItems] = useState([{ description: "", price: "" }]);
   const [billTo, setBillTo] = useState("");
   const [quotationNo, setQuotationNo] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Generate random quotation number
   useEffect(() => {
@@ -31,36 +31,51 @@ const navigate = useNavigate();
     (sum, item) => sum + (parseFloat(item.price) || 0),
     0
   );
-const printBill = () => {
-  const quotationData = {
-    quotationNo,
-    billTo,
-    total: totalAmount,
-    date: new Date().toLocaleDateString()
+
+  // 🔗 SAVE TO BACKEND + PRINT
+  const printBill = async () => {
+    try {
+      setLoading(true);
+
+      const quotationData = {
+        quotationNo,
+        billTo,
+        items,
+        totalAmount
+      };
+
+      const res = await fetch("http://localhost:5000/api/quotations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(quotationData)
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save quotation");
+      }
+
+      window.print();
+    } catch (error) {
+      alert("Error saving quotation. Check backend.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const existing = JSON.parse(localStorage.getItem("quotations")) || [];
-  localStorage.setItem(
-    "quotations",
-    JSON.stringify([...existing, quotationData])
-  );
-
-  window.print();
-};
-
 
   return (
     <div className="billing-wrapper">
 
       {/* TOP BAR */}
       <div className="top-bar">
-       
-<button className="admin-btn" onClick={() => navigate("/admin")}>
-  Admin
-</button>
+        <button className="admin-btn" onClick={() => navigate("/admin")}>
+          Admin
+        </button>
       </div>
 
-      {/* TERMS & CONDITIONS */}
+      {/* TERMS */}
       <div className="terms">
         <strong>Terms & Conditions:</strong>
         <ul>
@@ -71,7 +86,7 @@ const printBill = () => {
         </ul>
       </div>
 
-      {/* BILL CONTAINER */}
+      {/* BILL */}
       <div className="bill-container">
 
         {/* HEADER */}
@@ -94,7 +109,7 @@ const printBill = () => {
           />
         </div>
 
-        {/* ITEMS TABLE */}
+        {/* ITEMS */}
         <table className="bill-table">
           <thead>
             <tr>
@@ -130,16 +145,18 @@ const printBill = () => {
           </tbody>
         </table>
 
-        <button className="add-btn" onClick={addItem}>+ Add Item</button>
+        <button className="add-btn" onClick={addItem}>
+          + Add Item
+        </button>
 
         {/* TOTAL */}
         <div className="total-box">
           <h3>Grand Total: ₹ {totalAmount.toFixed(2)}</h3>
         </div>
 
-        {/* PRINT BUTTON */}
-        <button className="print-btn" onClick={printBill}>
-          Print / Save as PDF
+        {/* PRINT */}
+        <button className="print-btn" onClick={printBill} disabled={loading}>
+          {loading ? "Saving..." : "Print / Save as PDF"}
         </button>
 
       </div>

@@ -53,3 +53,14 @@ body {
 .admin-table tr:hover {
   background: #f9f9f9;
 }
+button {
+  padding: 6px 10px;
+  margin: 2px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: #d9534f;
+  color: white;
+  border: none;
+}
