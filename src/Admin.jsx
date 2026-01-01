@@ -8,7 +8,7 @@ const Admin = () => {
   const [editData, setEditData] = useState({ billTo: "", total: "" });
 
   const loadData = () => {
-    fetch("http://localhost:5000/api/quotations")
+    fetch("https://billingserver.vercel.app/api/quotations")
       .then(res => res.json())
       .then(data => setQuotations(data));
   };
@@ -21,7 +21,7 @@ const Admin = () => {
     if (!window.confirm("Delete this quotation?")) return;
 
     await fetch(
-      `http://localhost:5000/api/quotations/${quotationNo}`,
+      `https://billingserver.vercel.app/api/quotations/${quotationNo}`,
       { method: "DELETE" }
     );
 
@@ -38,7 +38,7 @@ const Admin = () => {
 
   const saveEdit = async (quotationNo) => {
     await fetch(
-      `http://localhost:5000/api/quotations/${quotationNo}`,
+      `https://billingserver.vercel.app/api/quotations/${quotationNo}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

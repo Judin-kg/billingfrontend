@@ -34,36 +34,30 @@ const Billing = () => {
 
   // 🔗 SAVE TO BACKEND + PRINT
   const printBill = async () => {
-    try {
-      setLoading(true);
-
-      const quotationData = {
-        quotationNo,
-        billTo,
-        items,
-        totalAmount
-      };
-
-      const res = await fetch("http://localhost:5000/api/quotations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(quotationData)
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to save quotation");
-      }
-
-      window.print();
-    } catch (error) {
-      alert("Error saving quotation. Check backend.");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  const quotationData = {
+    quotationNo,
+    billTo,
+    items,                      // Add items array
+    total: Number(totalAmount), // Ensure total is a number
+    date: new Date().toLocaleDateString()
   };
+
+  try {
+    const res = await fetch("https://billingserver.vercel.app/api/quotations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quotationData)
+    });
+
+    if (!res.ok) throw new Error("Failed to save quotation");
+
+    window.print();
+  } catch (error) {
+    alert("Error saving quotation");
+    console.error(error);
+  }
+};
+
 
   return (
     <div className="billing-wrapper">
