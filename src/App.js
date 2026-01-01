@@ -1,16 +1,17 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Billing from "./Billing";
 import Admin from "./Admin";
-
+import ViewPDF from "./ViewPDF";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Billing />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/view-pdf" element={<ViewPDF />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

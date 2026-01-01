@@ -1,61 +1,36 @@
 import React, { useEffect, useState } from "react";
 import "./Admin.css";
 
+const API_URL = "https://billingserver.vercel.app/api/quotations";
+
 const Admin = () => {
   const [quotations, setQuotations] = useState([]);
   const [search, setSearch] = useState("");
-  const [editNo, setEditNo] = useState(null);
-  const [editData, setEditData] = useState({ billTo: "", total: "" });
 
-  const loadData = () => {
-    fetch("https://billingserver.vercel.app/api/quotations")
-      .then(res => res.json())
-      .then(data => setQuotations(data));
+  const fetchQuotations = async () => {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    setQuotations(data);
   };
 
   useEffect(() => {
-    loadData();
+    fetchQuotations();
   }, []);
 
-  const deleteQuotation = async (quotationNo) => {
+  const deleteQuotation = async (id) => {
     if (!window.confirm("Delete this quotation?")) return;
-
-    await fetch(
-      `https://billingserver.vercel.app/api/quotations/${quotationNo}`,
-      { method: "DELETE" }
-    );
-
-    loadData();
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    fetchQuotations();
   };
 
-  const startEdit = (q) => {
-    setEditNo(q.quotationNo);
-    setEditData({
-      billTo: q.billTo || "",
-      total: q.total || ""
-    });
-  };
-
-  const saveEdit = async (quotationNo) => {
-    await fetch(
-      `https://billingserver.vercel.app/api/quotations/${quotationNo}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          billTo: editData.billTo,
-          total: Number(editData.total)
-        })
-      }
-    );
-
-    setEditNo(null);
-    loadData();
+  const viewPDF = (q) => {
+    localStorage.setItem("viewQuotation", JSON.stringify(q));
+    window.open("/view-pdf", "_blank");
   };
 
   const filtered = quotations.filter(q =>
-    (q.quotationNo || "").toLowerCase().includes(search.toLowerCase()) ||
-    (q.billTo || "").toLowerCase().includes(search.toLowerCase())
+    q.quotationNo.toLowerCase().includes(search.toLowerCase()) ||
+    q.billTo.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -66,7 +41,7 @@ const Admin = () => {
         className="filter-input"
         placeholder="Search quotation or client"
         value={search}
-        onChange={e => setSearch(e.target.value)}
+        onChange={(e) => setSearch(e.target.value)}
       />
 
       <table className="admin-table">
@@ -79,63 +54,19 @@ const Admin = () => {
             <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
-          {filtered.length ? filtered.map((q, i) => (
-            <tr key={i}>
+          {filtered.map((q) => (
+            <tr key={q._id}>
               <td>{q.quotationNo}</td>
-
-              <td>
-                {editNo === q.quotationNo ? (
-                  <input
-                    value={editData.billTo}
-                    onChange={e =>
-                      setEditData({ ...editData, billTo: e.target.value })
-                    }
-                  />
-                ) : q.billTo}
-              </td>
-
+              <td>{q.billTo}</td>
               <td>{q.date}</td>
-
+              <td>₹ {Number(q.total).toFixed(2)}</td>
               <td>
-                {editNo === q.quotationNo ? (
-                  <input
-                    type="number"
-                    value={editData.total}
-                    onChange={e =>
-                      setEditData({ ...editData, total: e.target.value })
-                    }
-                  />
-                ) : (
-                  `₹ ${Number(q.total || 0).toFixed(2)}`
-                )}
-              </td>
-
-              <td>
-                {editNo === q.quotationNo ? (
-                  <button onClick={() => saveEdit(q.quotationNo)}>
-                    Save
-                  </button>
-                ) : (
-                  <button onClick={() => startEdit(q)}>
-                    Edit
-                  </button>
-                )}
-
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteQuotation(q.quotationNo)}
-                >
-                  Delete
-                </button>
+                <button onClick={() => viewPDF(q)}>View PDF</button>
+                <button onClick={() => deleteQuotation(q._id)}>Delete</button>
               </td>
             </tr>
-          )) : (
-            <tr>
-              <td colSpan="5" align="center">No quotations</td>
-            </tr>
-          )}
+          ))}
         </tbody>
       </table>
     </div>
